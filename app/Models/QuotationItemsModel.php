@@ -15,4 +15,10 @@ class QuotationItemsModel extends Model
         'item_price'
     ];
     public $timestamps = true;
+
+    public function item()
+    {
+        return $this->belongsTo(QuotationModel::class, 'quotation_id');
+    }
+    
 }

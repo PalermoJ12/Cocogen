@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\QuotationModel;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\QuotationItemsModel;
+use App\Models\ItemsModel;
 use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
@@ -12,14 +14,16 @@ class QuotationController extends Controller
 {
     protected $quotationModel;
     protected $quotationItemsModel;
+    protected $itemsModel;
     public function __construct()
     {
         $this->quotationModel = new QuotationModel();
         $this->quotationItemsModel = new QuotationItemsModel();
+        $this->itemsModel = new ItemsModel();
     }
-    public function index()
+    public function summary()
     {
-
+        return response()->json($this->quotationModel->all());
     }
 
     /**
@@ -69,7 +73,7 @@ class QuotationController extends Controller
         foreach ($request->items as $item) {
             $this->quotationItemsModel->create([
                 'item_id' => $item['id'],
-                'quotation_id' => $nextId ,
+                'quotation_id' => $nextId,
                 'item_quantity' => $item['quantity'],
                 'item_price' => $item['price'],
             ]);
@@ -119,7 +123,7 @@ class QuotationController extends Controller
         foreach ($request->items as $item) {
             $this->quotationItemsModel->create([
                 'item_id' => $item['id'],
-                'quotation_id' => $nextId ,
+                'quotation_id' => $nextId,
                 'item_quantity' => $item['quantity'],
                 'item_price' => $item['price'],
             ]);
@@ -132,35 +136,31 @@ class QuotationController extends Controller
 
 
     }
-    /**
-     * Display the specified resource.
-     */
-    public function show(QuotationItemsModel $quotationItemsModel)
+
+    public function downloadPDF($id)
     {
-        //
+        try {
+          
+            $quotation = QuotationModel::with(['items.item'])->findOrFail($id);
+
+       
+            $pdf = Pdf::loadView('pdf.quotation', compact('quotation'));
+
+       
+            return $pdf->download("Quotation_{$quotation->quotation_number}.pdf");
+
+        } catch (\Exception $e) {
+           
+            \Log::error("PDF Generation Error: " . $e->getMessage());
+
+         
+            return response()->json([
+                'success' => false,
+                'message' => 'Error generating PDF',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(QuotationItemsModel $quotationItemsModel)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, QuotationItemsModel $quotationItemsModel)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(QuotationItemsModel $quotationItemsModel)
-    {
-        //
-    }
 }

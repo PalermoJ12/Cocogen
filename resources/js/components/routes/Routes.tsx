@@ -3,6 +3,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import Login from "../Pages/Login";
 import Layout from "../Layout/layout";
 import Quotation from "../Pages/Quotation";
+import Summary from "../Pages/Summary";
 
 const RoutesComponent = () => {
     const token = localStorage.getItem("token");
@@ -14,8 +15,9 @@ const RoutesComponent = () => {
             />
 
             {token ? (
-                <Route  element={<Layout />}>
+                <Route element={<Layout />}>
                     <Route path="/quotation" element={<Quotation />} />
+                    <Route path="/summary" element={<Summary />} />
                 </Route>
             ) : (
                 <Route path="*" element={<Navigate to="/" />} />

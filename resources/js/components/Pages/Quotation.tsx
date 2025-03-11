@@ -121,11 +121,6 @@ const Quotation = () => {
                     isShow: false,
                 });
             },
-/*************  ✨ Codeium Command ⭐  *************/
-            /**
-             * Close the confirm modal and save the quotation
-             */
-/******  83bcee3b-3d6a-4b6a-afb9-d8eac65284c0  *******/
             onConfirm: () => {
                 saveQuotation();
                 setShowConfirmModal({
