@@ -8,7 +8,9 @@ use App\Models\QuotationItemsModel;
 use App\Models\ItemsModel;
 use App\Http\Controllers\Controller;
 use DB;
+use Illuminate\Foundation\Exceptions\Renderer\Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class QuotationController extends Controller
 {
@@ -24,18 +26,18 @@ class QuotationController extends Controller
     public function summary()
     {
         try {
-          
+
             $quotations = QuotationModel::with(['items.item'])->get();
 
-       
-            return response()->json(['success' => true , 'quotation'=> $quotations]);
+
+            return response()->json(['success' => true, 'quotation' => $quotations]);
 
 
         } catch (\Exception $e) {
-           
 
 
-         
+
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error',
@@ -44,11 +46,11 @@ class QuotationController extends Controller
         }
     }
 
- 
+
     public function update(Request $request, $id)
     {
         try {
-       
+
             $quotation = QuotationModel::findOrFail($id);
 
             Log::info('Update Request Received', $request->all());
@@ -57,12 +59,12 @@ class QuotationController extends Controller
             $quotation->status = $request->data['status'] ?? 0;
             $quotation->save();
 
-         
-            $quotation->items()->delete();
+
+            $quotation->items()->delete(); 
 
             foreach ($request->data['items'] as $itemData) {
                 $quotation->items()->create([
-                    'item_id' => $itemData['item']. 'id' ?? $itemData['item_id'], 
+                    'item_id' => $itemData['item_id'] ?? null,
                     'item_quantity' => $itemData['item_quantity'],
                     'item_price' => $itemData['item_price'],
                 ]);
@@ -72,7 +74,7 @@ class QuotationController extends Controller
                 'success' => true,
                 'message' => 'Quotation updated successfully!'
             ]);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             \Log::error("Quotation Update Error: " . $e->getMessage());
             return response()->json([
                 'success' => false,
@@ -187,21 +189,21 @@ class QuotationController extends Controller
 
 
 
- public function viewSummary($id)
+    public function viewSummary($id)
     {
         try {
-          
+
             $quotation = QuotationModel::with(['items.item'])->findOrFail($id);
 
-       
-            return response()->json(['success' => true , 'quotation'=> $quotation]);
+
+            return response()->json(['success' => true, 'quotation' => $quotation]);
 
 
         } catch (\Exception $e) {
-           
+
             \Log::error("PDF Generation Error: " . $e->getMessage());
 
-         
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error generating PDF',
@@ -213,19 +215,19 @@ class QuotationController extends Controller
     public function deleteSummary($id)
     {
         try {
-          
+
             $quotation = QuotationModel::findOrFail($id)->delete();
 
-            
 
-            return response()->json(['success' => true , 'message'=>'Successfully deleted a summary.']);
+
+            return response()->json(['success' => true, 'message' => 'Successfully deleted a summary.']);
 
 
         } catch (\Exception $e) {
-           
+
             \Log::error("PDF Generation Error: " . $e->getMessage());
 
-         
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error generating PDF',
@@ -238,21 +240,21 @@ class QuotationController extends Controller
     public function downloadPDF($id)
     {
         try {
-          
+
             $quotation = QuotationModel::with(['items.item'])->findOrFail($id);
 
-       
+
             $pdf = Pdf::loadView('pdf.quotation', compact('quotation'));
 
-       
+
             return $pdf->download("Quotation_{$quotation->quotation_number}_" . date('Ymd_His') . ".pdf");
 
 
         } catch (\Exception $e) {
-           
+
             \Log::error("PDF Generation Error: " . $e->getMessage());
 
-         
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error generating PDF',

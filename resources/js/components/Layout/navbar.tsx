@@ -1,6 +1,14 @@
 import React from "react";
-
+import ApiService from "../services/ApiService";
 const Navbar = () => {
+    const logout = () => {
+        ApiService.post("/logout")
+            .then((res) => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+            })
+            .then((err) => console.log(err));
+    };
     return (
         <div className="navbar bg-base-800 shadow-sm">
             <div className="navbar-start">
@@ -64,7 +72,7 @@ const Navbar = () => {
                         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
                     >
                         <li>
-                            <a>Logout</a>
+                            <a onClick={() => logout()}>Logout</a>
                         </li>
                     </ul>
                 </div>

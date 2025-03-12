@@ -6,7 +6,7 @@ import UpdateModal from "../modal/UpdateModal";
 const Summary = () => {
     const ITEMS_PER_PAGE = 5;
     const [summary, setSummary] = useState([]);
-    const [summaryData, setSummaryData] = useState([]);
+
     const [filteredSummary, setFilteredSummary] = useState([]);
     const [statusFilter, setStatusFilter] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
@@ -58,6 +58,12 @@ const Summary = () => {
         await apiService
             .put(`/update-quotation/${data.id}`, { data })
             .then((res) => {
+                setUpdateModal((prev) => ({
+                    ...prev,
+                    
+                    isOpen: false,
+                 
+                }));
                 setShowToast({
                     isShow: true,
                     Message: "Successfully edited a summary.",

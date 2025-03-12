@@ -13,22 +13,19 @@ Route::get('/user', function (Request $request) {
 
 
 
-// Route::middleware(['auth:sanctum'])->group(function () {
-//     Route::get('/items', [ItemsModelController::class, 'index']);
-//     Route::post('/save-draft', [QuotationController::class, 'saveToDraft']);
-//     Route::post('/save-quotation', [QuotationController::class, 'saveQuotation']);
-// });
-//Quotation Routes
-Route::post('/save-draft', [QuotationController::class, 'saveToDraft']);
-Route::post('/save-quotation', [QuotationController::class, 'saveQuotation']);
-Route::put('/update-quotation/{id}', [QuotationController::class, 'update']);
-Route::get('/summary', [QuotationController::class, 'summary']);
-Route::get('/view-summary/{id}', [QuotationController::class, 'viewSummary']);
-Route::get('/quotation/{id}/download-pdf', [QuotationController::class, 'downloadPDF']);
-Route::delete('/summary/{id}/delete',  [QuotationController::class, 'deleteSummary']);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/save-draft', [QuotationController::class, 'saveToDraft']);
+    Route::post('/save-quotation', [QuotationController::class, 'saveQuotation']);
+    Route::put('/update-quotation/{id}', [QuotationController::class, 'update']);
+    Route::get('/summary', [QuotationController::class, 'summary']);
+    Route::get('/view-summary/{id}', [QuotationController::class, 'viewSummary']);
+    Route::get('/quotation/{id}/download-pdf', [QuotationController::class, 'downloadPDF']);
+    Route::delete('/summary/{id}/delete', [QuotationController::class, 'deleteSummary']);
+    Route::get('/items', [ItemsModelController::class, 'index']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
 
-//ito po is public route/endpoint
-Route::get('/items', [ItemsModelController::class, 'index']);
+
 
 //Login Route/Endpoint
 Route::post('/login', [AuthController::class, 'login']);
