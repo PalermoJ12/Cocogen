@@ -18,7 +18,7 @@ class QuotationItemsModel extends Model
 
     public function item()
     {
-        return $this->belongsTo(QuotationModel::class, 'quotation_id');
+        return $this->belongsTo(ItemsModel::class, 'item_id', 'id');
     }
     
 }

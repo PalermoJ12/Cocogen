@@ -1,21 +1,31 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
-const ConfirmModal = ({ Title, body, onCancel, onConfirm }) => {
+const ConfirmModal = ({ Title, body, isOpen, onCancel, onConfirm }) => {
+    const modalRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            modalRef.current?.showModal();
+        } else {
+            modalRef.current?.close();
+        }
+    }, [isOpen]);
+
     return (
-       
-            <div className=" bg-gray-600 p-6 rounded-lg shadow-lg w-96">
+        <dialog ref={modalRef} id="my_modal_4" className="modal">
+            <div className="modal-box w-11/12 max-w-1xl">
                 <h3 className="font-bold text-lg">{Title}</h3>
                 <p className="py-4">{body}</p>
-                <div className="flex justify-end gap-2">
-                    <button className="btn btn-secondary" onClick={onCancel}>
-                        THIS IS JUST FOR TEST
-                    </button>
-                    <button className="btn btn-primary" onClick={onConfirm}>
-                        Confirm
-                    </button>
+                <div className="modal-action">
+                    <button className="btn" onClick={onCancel}>Close</button>
+                    {onConfirm && (
+                        <button className="btn btn-primary" onClick={onConfirm}>
+                            Confirm
+                        </button>
+                    )}
                 </div>
             </div>
-       
+        </dialog>
     );
 };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import apiService from "../services/ApiService";
 import ItemCard from "../card/ItemCard";
 import ConfirmModal from "../modal/ConfirmModal";
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 3;
 
 const Quotation = () => {
     const [items, setItems] = useState([]);
@@ -151,6 +151,7 @@ const Quotation = () => {
                 }, 2000);
             })
             .catch((err) => {
+                console.log(err);
                 setShowToast({
                     isShow: true,
                     Message: "Failed to save to draft.",
@@ -167,14 +168,15 @@ const Quotation = () => {
     };
 
     const saveQuotation = async () => {
-        console.log(cart);
+        const request = {
+            items: cart,
+            total: total,
+            customer: customer,
+            user: localStorage.getItem("user"),
+        };
+        console.log(request);
         await apiService
-            .post("/save-quotation", {
-                items: cart,
-                total: total,
-                customer: customer,
-                user: localStorage.getItem("user"),
-            })
+            .post("/save-quotation", request)
             .then((res) => {
                 setShowToast({
                     isShow: true,
@@ -187,6 +189,7 @@ const Quotation = () => {
                 }, 2000);
             })
             .catch((err) => {
+                console.log(err);
                 setShowToast({
                     isShow: true,
                     Message: "Failed to save quotation.",
@@ -204,32 +207,31 @@ const Quotation = () => {
 
     return (
         <>
-            {showConfirmModal.isShow && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-                    <ConfirmModal
-                        Title={showConfirmModal.Title}
-                        body={showConfirmModal.body}
-                        onCancel={showConfirmModal.onCancel}
-                        onConfirm={showConfirmModal.onConfirm}
-                    />
-                </div>
-            )}
+            <ConfirmModal
+                Title={showConfirmModal.Title}
+                body={showConfirmModal.body}
+                isOpen={showConfirmModal.isShow}
+                onCancel={showConfirmModal.onCancel}
+                onConfirm={showConfirmModal.onConfirm}
+            />
 
             {showToast.isShow && (
-                <div className="toast">
+                <div className="toast toast-start">
                     <div
-                        className={`alert alert-${
-                            showToast.type == "success" ? "success" : "error"
-                        }`}
+                        className={
+                            showToast?.type == "success"
+                                ? `alert alert-success`
+                                : `alert alert-error`
+                        }
                     >
                         <span>{showToast.Message}</span>
                     </div>
                 </div>
             )}
 
-            <div className="flex p-6 min-h-screen gap-6">
-                <div className="flex-grow">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col flex-row p-4 md:p-6 min-h-screen ">
+                <div className="flex-grow   ">
+                    <div className="md:65 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         {paginatedItems.map((item) => (
                             <ItemCard
                                 ItemName={item.item_name}
@@ -245,7 +247,7 @@ const Quotation = () => {
                                 onClick={() =>
                                     setItemPage((prev) => Math.max(prev - 1, 1))
                                 }
-                                className=" px-3 py-1 rounded disabled:opacity-100 hover:bg-amber-50 hover:text-black hover:cursor-pointer"
+                                className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black"
                                 disabled={itemPage === 1}
                             >
                                 ← Previous
@@ -259,7 +261,7 @@ const Quotation = () => {
                                         Math.min(prev + 1, totalItemPages)
                                     )
                                 }
-                                className=" px-3 py-1 rounded disabled:opacity-100 hover:bg-amber-50 hover:text-black hover:cursor-pointer"
+                                className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black"
                                 disabled={itemPage === totalItemPages}
                             >
                                 Next →
@@ -268,16 +270,18 @@ const Quotation = () => {
                     )}
                 </div>
 
-                <div className="w-96 flex flex-col gap-4">
-                    <div className="w-96 p-6 border border-green-50 rounded-lg shadow-md sticky top-6 h-fit">
-                        <h2 className="text-2xl font-bold mb-4">🛒 Cart</h2>
+                <div className="w-full md:w-75 flex flex-col gap-4">
+                    <div className="w-full p-4 md:p-6 border border-green-50 rounded-lg shadow-md sticky top-6 h-fit">
+                        <h2 className="text-xl md:text-2xl font-bold mb-4">
+                            🛒 Cart
+                        </h2>
                         <p className="text-lg">
                             Total Items:{" "}
                             {cart.reduce((sum, item) => sum + item.quantity, 0)}
                         </p>
 
                         <ul className="mt-4">
-                            {paginatedCart.map((item, index) => (
+                            {paginatedCart.map((item) => (
                                 <li
                                     key={item.id}
                                     className="border-b py-2 flex justify-between items-center"
@@ -319,7 +323,7 @@ const Quotation = () => {
                                             Math.max(prev - 1, 1)
                                         )
                                     }
-                                    className=" px-3 py-1 rounded disabled:opacity-100 hover:bg-amber-50 hover:text-black hover:cursor-pointer"
+                                    className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black"
                                     disabled={currentPage === 1}
                                 >
                                     ← Previous
@@ -333,7 +337,7 @@ const Quotation = () => {
                                             Math.min(prev + 1, totalPages)
                                         )
                                     }
-                                    className=" px-3 py-1 rounded disabled:opacity-100 hover:bg-amber-50 hover:text-black hover:cursor-pointer"
+                                    className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black"
                                     disabled={currentPage === totalPages}
                                 >
                                     Next →
@@ -351,22 +355,22 @@ const Quotation = () => {
                                     <input
                                         type="text"
                                         placeholder="Customer Name"
-                                        className="input"
+                                        className="input w-full"
                                         onChange={(e) =>
                                             setCustomer(e.target.value)
                                         }
                                     />
                                 </div>
 
-                                <div className="flex flex-row gap-2 flex-wrap mt-4 justify-end  border-t pt-4 text-lg font-bold">
+                                <div className="flex flex-wrap mt-4 justify-end border-t pt-4 text-lg font-bold gap-2">
                                     <button
-                                        className="btn btn-secondary"
+                                        className="btn btn-secondary w-full sm:w-auto"
                                         onClick={showDraftConfirm}
                                     >
                                         Draft
                                     </button>
                                     <button
-                                        className="btn btn-primary"
+                                        className="btn btn-primary w-full sm:w-auto"
                                         onClick={showQuotationConfirm}
                                     >
                                         Save

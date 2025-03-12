@@ -22,7 +22,9 @@ Route::get('/user', function (Request $request) {
 Route::post('/save-draft', [QuotationController::class, 'saveToDraft']);
 Route::post('/save-quotation', [QuotationController::class, 'saveQuotation']);
 Route::get('/summary', [QuotationController::class, 'summary']);
+Route::get('/view-summary/{id}', [QuotationController::class, 'viewSummary']);
 Route::get('/quotation/{id}/download-pdf', [QuotationController::class, 'downloadPDF']);
+Route::delete('/summary/{id}/delete',  [QuotationController::class, 'deleteSummary']);
 
 //ito po is public route/endpoint
 Route::get('/items', [ItemsModelController::class, 'index']);

@@ -2,7 +2,7 @@ import React from "react";
 
 const Navbar = () => {
     return (
-        <div className="navbar bg-base-100 shadow-sm">
+        <div className="navbar bg-base-800 shadow-sm">
             <div className="navbar-start">
                 <div className="dropdown">
                     <div

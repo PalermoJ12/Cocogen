@@ -137,6 +137,56 @@ class QuotationController extends Controller
 
     }
 
+
+
+ public function viewSummary($id)
+    {
+        try {
+          
+            $quotation = QuotationModel::with(['items.item'])->findOrFail($id);
+
+       
+            return response()->json(['success' => true , 'quotation'=> $quotation]);
+
+
+        } catch (\Exception $e) {
+           
+            \Log::error("PDF Generation Error: " . $e->getMessage());
+
+         
+            return response()->json([
+                'success' => false,
+                'message' => 'Error generating PDF',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function deleteSummary($id)
+    {
+        try {
+          
+            $quotation = QuotationModel::findOrFail($id)->delete();
+
+            
+
+            return response()->json(['success' => true , 'message'=>'Successfully deleted a summary.']);
+
+
+        } catch (\Exception $e) {
+           
+            \Log::error("PDF Generation Error: " . $e->getMessage());
+
+         
+            return response()->json([
+                'success' => false,
+                'message' => 'Error generating PDF',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
     public function downloadPDF($id)
     {
         try {
@@ -147,7 +197,8 @@ class QuotationController extends Controller
             $pdf = Pdf::loadView('pdf.quotation', compact('quotation'));
 
        
-            return $pdf->download("Quotation_{$quotation->quotation_number}.pdf");
+            return $pdf->download("Quotation_{$quotation->quotation_number}_" . date('Ymd_His') . ".pdf");
+
 
         } catch (\Exception $e) {
            

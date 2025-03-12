@@ -1,27 +1,97 @@
 import { React, useEffect, useState, useCallback } from "react";
 import apiService from "../services/ApiService";
-
+import ViewModal from "../modal/ViewModal";
+import ConfirmModal from "../modal/ConfirmModal";
 const Summary = () => {
+    const ITEMS_PER_PAGE = 5;
     const [summary, setSummary] = useState([]);
+    const [summaryData, setSummaryData] = useState([]);
     const [filteredSummary, setFilteredSummary] = useState([]);
     const [statusFilter, setStatusFilter] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [viewModal, setViewModal] = useState({
+        Title: "",
+        body: "",
+        isOpen: false,
+        onCancel: () => {},
+        onConfirm: () => {},
+        data: [],
+    });
+    const [showConfirmModal, setShowConfirmModal] = useState({
+        isShow: false,
+        Title: "",
+        body: "",
+        onCancel: () => {},
+        onConfirm: () => {},
+    });
+
+    const [showToast, setShowToast] = useState({
+        isShow: false,
+        Message: "",
+    });
 
     const getSummary = useCallback(async () => {
-        try {
-            const res = await apiService.get("/summary");
-            setSummary(res.data);
-            setFilteredSummary(res.data);
-        } catch (err) {
-            console.log(err);
-        }
+        await apiService
+            .get("/summary")
+            .then((res) => {
+                setSummary(res.data);
+                setFilteredSummary(res.data);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
     }, []);
+
+    const getQuotationSummary = async (id) => {
+        await apiService
+            .get(`view-summary/${id}`)
+            .then((res) => {
+                setViewModal((prev) => ({
+                    ...prev,
+                    data: res.data.quotation,
+                }));
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    };
+
+    const deleteSummary = async (id) => {
+        await apiService
+            .delete(`/summary/${id}/delete`)
+            .then((res) => {
+                setShowToast({
+                    isShow: true,
+                    Message: "Successfully deleted a summary.",
+                    type: "success",
+                });
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            })
+            .catch((err) => {
+                setShowToast({
+                    isShow: true,
+                    Message: "There is an error in delete the summary.",
+                    type: "error",
+                });
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            });
+    };
 
     const downloadPDF = async (id) => {
         try {
-            const response = await apiService.get(`/quotation/${id}/download-pdf`, {
-                responseType: "blob",
-            });
+            const response = await apiService.get(
+                `/quotation/${id}/download-pdf`,
+                {
+                    responseType: "blob",
+                }
+            );
 
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement("a");
@@ -34,11 +104,13 @@ const Summary = () => {
         }
     };
 
-    useEffect(() => {
-        getSummary();
-    }, [getSummary]);
+    const totalPages = Math.ceil(filteredSummary.length / ITEMS_PER_PAGE);
 
-    // Handle status badge assignment
+    const currentItems = filteredSummary.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
     const handleStatus = (status: number) => {
         let returnData = {
             status_name: "",
@@ -85,86 +157,202 @@ const Summary = () => {
 
         setFilteredSummary(filteredData);
     }, [statusFilter, searchQuery, summary]);
-
+    useEffect(() => {
+        getSummary();
+    }, [getSummary]);
     return (
-        <div className="mt-4 max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold">Summary</h1>
-
-            <div className="flex gap-4 mt-4">
-                <input
-                    type="text"
-                    placeholder="Search by Customer or Quotation No."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input input-bordered w-full max-w-xs"
+        <>
+            {viewModal.isOpen && (
+                <ViewModal
+                    Title={viewModal.Title}
+                    body={viewModal.body}
+                    isOpen={viewModal.isOpen}
+                    data={viewModal.data}
+                    onCancel={() => {
+                        setViewModal((prev) => ({
+                            ...prev,
+                            isOpen: false,
+                        }));
+                    }}
+                    onConfirm={() => {
+                        setViewModal((prev) => ({
+                            ...prev,
+                            isOpen: false,
+                        }));
+                    }}
                 />
+            )}
 
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="select select-bordered"
-                >
-                    <option value="">All Status</option>
-                    <option value="0">Draft</option>
-                    <option value="1">Sent</option>
-                    <option value="2">Approved</option>
-                    <option value="3">Declined</option>
-                </select>
-            </div>
+            {showToast.isShow && (
+                <div className="toast toast-start">
+                    <div
+                        className={
+                            showToast?.type == "success"
+                                ? `alert alert-success`
+                                : `alert alert-error`
+                        }
+                    >
+                        <span>{showToast.Message}</span>
+                    </div>
+                </div>
+            )}
 
-            <div className="mt-4 overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Customer</th>
-                            <th>Quotation No.</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredSummary.map((item, index) => (
-                            <tr key={index}>
-                                <th>{index + 1}</th>
-                                <td>{item.customer_name}</td>
-                                <td>{item.quotation_number}</td>
-                                <td>{item.total_amount}</td>
-                                <td>
-                                    <div
-                                        className={
-                                            handleStatus(item.status)?.badge
-                                        }
-                                    >
-                                        {handleStatus(item.status)?.status_name}
-                                    </div>
-                                </td>
-                                <td>{item.quote_date}</td>
-                                <td>
-                                    <button className="btn btn-primary btn-xs mr-1">
-                                        View
-                                    </button>
-                                    <button className="btn btn-info btn-xs mr-1">
-                                        Update
-                                    </button>
-                                    <button
-                                        onClick={() => downloadPDF(item.id)}
-                                        className="btn btn-success btn-xs mr-1"
-                                    >
-                                        Download
-                                    </button>
-                                    <button className="btn btn-error btn-xs mr-1">
-                                        Delete
-                                    </button>
-                                </td>
+            <ConfirmModal
+                Title={showConfirmModal.Title}
+                body={showConfirmModal.body}
+                isOpen={showConfirmModal.isShow}
+                onCancel={showConfirmModal.onCancel}
+                onConfirm={showConfirmModal.onConfirm}
+            />
+
+            <div className="mt-4 max-w-6xl mx-auto">
+                <h1 className="text-3xl font-bold">Summary</h1>
+
+                <div className="flex gap-4 mt-4">
+                    <input
+                        type="text"
+                        placeholder="Search by Customer or Quotation No."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="input input-bordered w-full max-w-xs"
+                    />
+
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="select select-bordered"
+                    >
+                        <option value="">All Status</option>
+                        <option value="0">Draft</option>
+                        <option value="1">Sent</option>
+                        <option value="2">Approved</option>
+                        <option value="3">Declined</option>
+                    </select>
+                </div>
+
+                <div className="mt-4 overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Quotation No.</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {currentItems.map((item, index) => (
+                                <tr key={index}>
+                                    <th>{item.id}</th>
+                                    <td>{item.customer_name}</td>
+                                    <td>{item.quotation_number}</td>
+                                    <td>₱{item.total_amount}</td>
+                                    <td>
+                                        <div
+                                            className={
+                                                handleStatus(item.status)?.badge
+                                            }
+                                        >
+                                            {
+                                                handleStatus(item.status)
+                                                    ?.status_name
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>{item.quote_date}</td>
+                                    <td>
+                                        <button
+                                            className="btn btn-primary btn-xs mr-1"
+                                            onClick={async () => {
+                                                await getQuotationSummary(
+                                                    item.id
+                                                );
+                                                setViewModal((prev) => ({
+                                                    ...prev,
+                                                    Title: "View summary",
+                                                    isOpen: true,
+                                                }));
+                                            }}
+                                        >
+                                            View
+                                        </button>
+                                        <button className="btn btn-info btn-xs mr-1">
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => downloadPDF(item.id)}
+                                            className="btn btn-success btn-xs mr-1"
+                                        >
+                                            Download
+                                        </button>
+                                        <button
+                                            className="btn btn-error btn-xs mr-1"
+                                            onClick={() => {
+                                                setShowConfirmModal((prev) => ({
+                                                    ...prev,
+                                                    Title: "Delete this?",
+                                                    body: "Are you sure you want to delete this summary? This action cannot be undone.",
+                                                    isShow: true,
+                                                    onCancel: () =>
+                                                        setShowConfirmModal(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                isShow: false,
+                                                            })
+                                                        ),
+
+                                                    onConfirm: () => {
+                                                        deleteSummary(item.id);
+                                                        setShowConfirmModal(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                isShow: false,
+                                                            })
+                                                        );
+                                                    },
+                                                }));
+                                            }}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                {totalPages > 1 && (
+                    <div className="flex justify-center mt-4">
+                        <button
+                            className="btn btn-sm mr-2"
+                            onClick={() =>
+                                setCurrentPage((prev) => Math.max(prev - 1, 1))
+                            }
+                            disabled={currentPage === 1}
+                        >
+                            « Prev
+                        </button>
+                        <span className="font-bold text-sm">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            className="btn btn-sm ml-2"
+                            onClick={() =>
+                                setCurrentPage((prev) =>
+                                    Math.min(prev + 1, totalPages)
+                                )
+                            }
+                            disabled={currentPage === totalPages}
+                        >
+                            Next »
+                        </button>
+                    </div>
+                )}
             </div>
-        </div>
+        </>
     );
 };
 
