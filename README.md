@@ -11,6 +11,7 @@ cd Cocogen
 
 ### 2. Install dependency
 npm install
+###
 composer install && composer update
 
 
