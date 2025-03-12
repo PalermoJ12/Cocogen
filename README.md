@@ -1,20 +1,31 @@
---cloning
-git clone https://github.com/PalermoJ12/Cocogen.git
+# Cocogen Exam  
 
---
+## Installation Guide  
+
+### 1. Clone the Repository  
+
+git clone https://github.com/PalermoJ12/Cocogen.git
+cd Cocogen
+
+
+### 2. Install dependency
 npm install
 composer install && composer update
 
---migration
-php artisan migrate
-php artisan db:seed
 
---running
--open first cmd/bash/powershell
+### 3. Migration and seeders
+php artisan migrate --seed
+
+
+
+### 4. Running my application
 php artisan serve
--open second cmd/bash/powershell
 npm run dev
 
---default account
-email: test@example.com
-password: password
+### 4. Default credential
+Email: test@example.com
+Password: password
+
+
+
+
