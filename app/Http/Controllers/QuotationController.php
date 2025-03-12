@@ -23,15 +23,63 @@ class QuotationController extends Controller
     }
     public function summary()
     {
-        return response()->json($this->quotationModel->all());
+        try {
+          
+            $quotations = QuotationModel::with(['items.item'])->get();
+
+       
+            return response()->json(['success' => true , 'quotation'=> $quotations]);
+
+
+        } catch (\Exception $e) {
+           
+
+
+         
+            return response()->json([
+                'success' => false,
+                'message' => 'Error',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+ 
+    public function update(Request $request, $id)
     {
-        //
+        try {
+       
+            $quotation = QuotationModel::findOrFail($id);
+
+            Log::info('Update Request Received', $request->all());
+            $quotation->customer_name = $request->data['customer_name'] ?? null;
+            $quotation->total_amount = $request->data['total_amount'] ?? 0;
+            $quotation->status = $request->data['status'] ?? 0;
+            $quotation->save();
+
+         
+            $quotation->items()->delete();
+
+            foreach ($request->data['items'] as $itemData) {
+                $quotation->items()->create([
+                    'item_id' => $itemData['item']. 'id' ?? $itemData['item_id'], 
+                    'item_quantity' => $itemData['item_quantity'],
+                    'item_price' => $itemData['item_price'],
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Quotation updated successfully!'
+            ]);
+        } catch (Exception $e) {
+            \Log::error("Quotation Update Error: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update quotation',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

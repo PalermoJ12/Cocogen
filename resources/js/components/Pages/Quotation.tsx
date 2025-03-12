@@ -247,7 +247,7 @@ const Quotation = () => {
                                 onClick={() =>
                                     setItemPage((prev) => Math.max(prev - 1, 1))
                                 }
-                                className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black"
+                                className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black hover:cursor-pointer"
                                 disabled={itemPage === 1}
                             >
                                 ← Previous
@@ -261,7 +261,7 @@ const Quotation = () => {
                                         Math.min(prev + 1, totalItemPages)
                                     )
                                 }
-                                className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black"
+                                className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black hover:cursor-pointer"
                                 disabled={itemPage === totalItemPages}
                             >
                                 Next →
@@ -323,7 +323,7 @@ const Quotation = () => {
                                             Math.max(prev - 1, 1)
                                         )
                                     }
-                                    className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black"
+                                    className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black hover:cursor-pointer"
                                     disabled={currentPage === 1}
                                 >
                                     ← Previous
@@ -337,7 +337,7 @@ const Quotation = () => {
                                             Math.min(prev + 1, totalPages)
                                         )
                                     }
-                                    className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black"
+                                    className="px-3 py-1 rounded disabled:opacity-50 hover:bg-amber-50 hover:text-black hover:cursor-pointer"
                                     disabled={currentPage === totalPages}
                                 >
                                     Next →

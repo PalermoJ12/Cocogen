@@ -2,6 +2,7 @@ import { React, useEffect, useState, useCallback } from "react";
 import apiService from "../services/ApiService";
 import ViewModal from "../modal/ViewModal";
 import ConfirmModal from "../modal/ConfirmModal";
+import UpdateModal from "../modal/UpdateModal";
 const Summary = () => {
     const ITEMS_PER_PAGE = 5;
     const [summary, setSummary] = useState([]);
@@ -11,6 +12,14 @@ const Summary = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [viewModal, setViewModal] = useState({
+        Title: "",
+        body: "",
+        isOpen: false,
+        onCancel: () => {},
+        onConfirm: () => {},
+        data: [],
+    });
+    const [updateModal, setUpdateModal] = useState({
         Title: "",
         body: "",
         isOpen: false,
@@ -35,25 +44,39 @@ const Summary = () => {
         await apiService
             .get("/summary")
             .then((res) => {
-                setSummary(res.data);
-                setFilteredSummary(res.data);
+                console.log(res);
+                setSummary(res.data.quotation);
+                setFilteredSummary(res.data.quotation);
             })
             .catch((err) => {
                 console.log(err);
             });
     }, []);
 
-    const getQuotationSummary = async (id) => {
+    const updateSummary = async (data) => {
+        console.log(data);
         await apiService
-            .get(`view-summary/${id}`)
+            .put(`/update-quotation/${data.id}`, { data })
             .then((res) => {
-                setViewModal((prev) => ({
-                    ...prev,
-                    data: res.data.quotation,
-                }));
+                setShowToast({
+                    isShow: true,
+                    Message: "Successfully edited a summary.",
+                    type: "success",
+                });
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
             })
             .catch((err) => {
                 console.log(err);
+                setShowToast({
+                    isShow: true,
+                    Message: "There is an error in updating the summary.",
+                    type: "error",
+                });
+
+               
             });
     };
 
@@ -183,6 +206,23 @@ const Summary = () => {
                 />
             )}
 
+            {updateModal.isOpen && (
+                <UpdateModal
+                    Title={updateModal.Title}
+                    isOpen={updateModal.isOpen}
+                    data={updateModal.data}
+                    onCancel={() => {
+                        setUpdateModal((prev) => ({
+                            ...prev,
+                            isOpen: false,
+                        }));
+                    }}
+                    onConfirm={(updatedData) => {
+                        updateSummary(updatedData);
+                    }}
+                />
+            )}
+
             {showToast.isShow && (
                 <div className="toast toast-start">
                     <div
@@ -266,20 +306,29 @@ const Summary = () => {
                                     <td>
                                         <button
                                             className="btn btn-primary btn-xs mr-1"
-                                            onClick={async () => {
-                                                await getQuotationSummary(
-                                                    item.id
-                                                );
+                                            onClick={() => {
+                                                console.log(item);
                                                 setViewModal((prev) => ({
                                                     ...prev,
                                                     Title: "View summary",
                                                     isOpen: true,
+                                                    data: item,
                                                 }));
                                             }}
                                         >
                                             View
                                         </button>
-                                        <button className="btn btn-info btn-xs mr-1">
+                                        <button
+                                            className="btn btn-info btn-xs mr-1"
+                                            onClick={() => {
+                                                setUpdateModal((prev) => ({
+                                                    ...prev,
+                                                    Title: "Update summary",
+                                                    isOpen: true,
+                                                    data: item,
+                                                }));
+                                            }}
+                                        >
                                             Edit
                                         </button>
                                         <button
