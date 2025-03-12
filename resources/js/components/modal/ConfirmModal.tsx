@@ -8,7 +8,7 @@ const ConfirmModal = ({ Title, body, onCancel, onConfirm }) => {
                 <p className="py-4">{body}</p>
                 <div className="flex justify-end gap-2">
                     <button className="btn btn-secondary" onClick={onCancel}>
-                        Cancel
+                        THIS IS JUST FOR TEST
                     </button>
                     <button className="btn btn-primary" onClick={onConfirm}>
                         Confirm
